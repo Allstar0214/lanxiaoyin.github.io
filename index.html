@@ -230,6 +230,15 @@
     .search-history-item .delete-history:hover {
         color: #EF4444;}
   </style>
+    
+<script>
+  // 如果当前不是强制刷新状态，就强制跳转一次带时间戳的链接
+  if (window.location.search.indexOf('force') === -1 && navigator.userAgent.includes('QQBrowser')) {
+    const t = Date.now();
+    window.location.href = window.location.pathname + '?force=' + t;
+  }
+</script>
+    
 </head>
 <body class="bg-green-200 min-h-screen flex flex-col items-center pt-16 p-4" id="page-background">
 <div class="fixed top-32 left-0 right-0 w-full max-w-5xl mx-auto text-center z-50 px-4">
@@ -947,4 +956,5 @@
         }
     }, true);
   </script>
+    
 </body></html>
