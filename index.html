@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Navigation Page</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .search-container {
+      background-color: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
+    }
+    .icon-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      cursor: grab;
+    }
+    .icon-bg {
+      background-color: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(5px);
+      border-radius: 0.75rem;
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      width: 64px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .icon-bg:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    .icon-label {
+      margin-top: 0.5rem;
+      font-size: 0.75rem;
+      color: #4A5568;
+      width: 100%;
+      word-break: break-all;
+    }
+    .add-button .material-icons {
+      font-size: 2.5rem;
+    }
+    .context-menu {
+      position: absolute;
+      z-index: 1000;
+      background-color: white;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
+      padding: 0.25rem 0;
+      display: none;
+      min-width: 150px;
+    }
+    .context-menu-item {
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .context-menu-item:hover {
+      background-color: #f0f0f0;
+    }
+    .edit-icon-modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        z-index: 1001;
+        width: 90%;
+        max-width: 400px;
+    }
+    .edit-icon-modal h3 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #374151;
+    }
+    .edit-icon-modal label {
+        display: block;
+        margin-bottom: 0.25rem;
+        font-size: 0.875rem;
+        color: #4B5563;
+    }
+    .edit-icon-modal input[type="text"],
+    .edit-icon-modal input[type="url"],
+    .edit-icon-modal input[type="file"],
+    .edit-icon-modal input[type="color"] {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #D1D5DB;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        margin-bottom: 0.75rem;
+    }
+    .edit-icon-modal .icon-type-options {
+      margin-top: 1rem;
+      border-top: 1px solid #E5E7EB;
+      padding-top: 1rem;
+    }
+    .edit-icon-modal .icon-type-option {
+      display: flex;
+      align-items: center;
+      padding: 0.5rem 0;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .edit-icon-modal .icon-type-option input[type="radio"] {
+      margin-right: 0.5rem;
+      width: auto;margin-bottom: 0;
+    }
+    .edit-icon-modal .icon-type-details {
+      padding-left: 1.5rem;margin-bottom: 0.5rem;
+    }
+    .edit-icon-modal .icon-type-details input[type="text"],
+    .edit-icon-modal .icon-type-details input[type="file"],
+    .edit-icon-modal .icon-type-details input[type="color"]{
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+    }
+    .edit-icon-modal .icon-type-details input[type="color"] {
+        height: 30px;
+        padding: 0.1rem;
+    }
+    .edit-icon-modal .button-group {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    .edit-icon-modal .button-group button {
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: background-color 0.2s;
+    }
+    .edit-icon-modal .button-group .btn-primary {
+        background-color: #3B82F6;
+        color: white;
+    }
+    .edit-icon-modal .button-group .btn-primary:hover {
+        background-color: #2563EB;
+    }
+    .edit-icon-modal .button-group .btn-secondary {
+        background-color: #E5E7EB;
+        color: #374151;
+    }
+    .edit-icon-modal .button-group .btn-secondary:hover {
+        background-color: #D1D5DB;
+    }
+    .color-palette {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      right: 0;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 0.75rem;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.5rem;
+      z-index: 1000;
+    }
+    .color-swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+    .dragging {
+      opacity: 0.5;
+      cursor: grabbing !important;}
+    .drag-over .icon-bg {border: 2px dashed #3B82F6;
+      box-sizing: border-box;
+      transform: scale(1.05) translateY(-4px);box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2), 0 4px 6px -2px rgba(59, 130, 246, 0.1);
+    }
+    .icon-options-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+    .icon-option-item {
+      display: flex;
+      align-items: center;
+      padding: 0.25rem 0.5rem;
+      cursor: pointer;
+      border-radius: 0.25rem;
+      transition: background-color 0.2s;
+    }
+    .icon-option-item:hover {
+      background-color: #f0f0f0;
+    }
+    .icon-option-item .material-icons {
+      font-size: 1.25rem;margin-right: 0.5rem;
+      color: #6B7280;}
+    .icon-option-item span {
+      font-size: 0.875rem;color: #374151;}
+    .search-history-dropdown {
+        position: absolute;
+        top: calc(100% + 8px);left: 0;width: 100%;background-color: white;
+        border: 1px solid #D1D5DB;border-radius: 0.375rem;box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);z-index: 100;
+        max-height: 200px;overflow-y: auto;}
+    .search-history-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 1rem;cursor: pointer;
+        font-size: 0.875rem;}
+    .search-history-item:hover {
+        background-color: #f0f0f0;}
+    .search-history-item .delete-history {
+        color: #9CA3AF;font-size: 1rem;cursor: pointer;
+    }
+    .search-history-item .delete-history:hover {
+        color: #EF4444;}
+  </style>
+</head>
+<body class="bg-green-200 min-h-screen flex flex-col items-center pt-16 p-4" id="page-background">
+<div class="fixed top-32 left-0 right-0 w-full max-w-5xl mx-auto text-center z-50 px-4">
+<div class="text-gray-700 text-3xl font-medium mb-1" id="time"></div>
+<div class="text-gray-700 text-[1.05rem] font-medium mb-3" id="date"></div>
+</div>
+<div class="search-container w-full max-w-5xl p-6 rounded-2xl shadow-lg mb-16 relative z-20 mt-48">
+<form class="flex items-center relative" id="search-form">
+<div class="relative inline-block text-left mr-2">
+<div>
+<button aria-expanded="true" aria-haspopup="true" class="inline-flex items-center justify-center h-full px-3 py-2 bg-transparent text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none rounded-md" id="menu-button" type="button">
+<span class="material-icons text-blue-600 text-2xl">search</span>
+<div class="flex items-center ml-1">
+<span class="text-base" id="search-engine-name">百度</span>
+<span class="material-icons ml-0.5 h-5 w-5 text-gray-500">arrow_drop_down</span>
+</div>
+</button>
+</div>
+<div aria-labelledby="menu-button" aria-orientation="vertical" class="origin-top-left absolute left-0 mt-2 w-36 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none hidden z-50" id="dropdown-menu" role="menu" tabindex="-1">
+<div class="py-1" role="none">
+<a class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 search-engine-option" data-engine="baidu" data-url="https://www.baidu.com/s?wd=" href="#" id="menu-item-baidu" role="menuitem" tabindex="-1">百度</a>
+<a class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 search-engine-option" data-engine="google" data-url="https://www.google.com/search?q=" href="#" id="menu-item-google" role="menuitem" tabindex="-1">Google</a>
+<a class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 search-engine-option" data-engine="bing" data-url="https://www.bing.com/search?q=" href="#" id="menu-item-bing" role="menuitem" tabindex="-1">Bing</a>
+<a class="text-gray-700 block px-4 py-2 text-sm hover:bg-gray-100 search-engine-option" data-engine="duckduckgo" data-url="https://duckduckgo.com/?q=" href="#" id="menu-item-duckduckgo" role="menuitem" tabindex="-1">DuckDuckGo</a>
+</div>
+</div>
+</div>
+<div class="flex-grow relative">
+<input class="w-full p-4 text-lg border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-shadow" id="search-input" placeholder="" type="search"/>
+<div class="search-history-dropdown hidden" id="search-history-dropdown">
+</div>
+</div>
+<button class="h-full px-6 py-4 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 text-lg ml-2" id="search-submit-button" type="button">
+        搜索
+      </button>
+</form>
+</div>
+<div class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-7 lg:grid-cols-10 gap-x-6 gap-y-8 w-full max-w-5xl relative z-10" id="url-container">
+</div>
+<div class="fixed bottom-4 right-4 flex items-center space-x-2 z-30">
+<button class="bg-white p-3 rounded-full shadow-lg hover:bg-gray-100 transition-colors" id="change-background-button">
+<span class="material-icons text-gray-600">image</span>
+</button>
+<div class="relative">
+<button class="bg-white p-3 rounded-full shadow-lg hover:bg-gray-100 transition-colors" id="change-background-color-button">
+<span class="material-icons text-gray-600">palette</span>
+</button>
+<div class="color-palette hidden" id="color-palette-popup">
+<input class="w-full h-10 border-0 p-0 cursor-pointer col-span-full mb-2" id="custom-color-picker" title="Choose custom color" type="color"/>
+</div>
+</div>
+</div>
+<div class="context-menu" id="icon-context-menu">
+<div class="context-menu-item" id="edit-icon-trigger">编辑</div>
+<div class="context-menu-item" id="delete-icon-item">删除</div>
+</div>
+<div class="edit-icon-modal hidden" id="edit-add-icon-modal-content">
+<h3 id="edit-add-modal-title">编辑网址</h3>
+<div>
+<label for="modal-url-name">名称</label>
+<input id="modal-url-name" name="modal-url-name" type="text"/>
+</div>
+<div>
+<label for="modal-url-link">网址</label>
+<input id="modal-url-link" name="modal-url-link" placeholder="example.com" type="text"/>
+</div>
+<div class="icon-type-options">
+<p class="font-medium text-sm text-gray-700 mb-1">自定义图标:</p>
+<div class="icon-options-container">
+<div class="icon-option-item" data-value="original">
+<span class="material-icons">radio_button_unchecked</span>
+<span class="ml-2">自动获取图标 (输入网址后)</span>
+</div>
+<div class="icon-type-details pl-8 pb-1" id="modal-original-icon-details" style="display: block;">
+<input class="text-xs" id="modal-original-icon-url" placeholder="输入网址自动关联图标" type="text"/>
+</div>
+<div class="icon-option-item" data-value="file">
+<span class="material-icons">radio_button_unchecked</span>
+<span class="ml-2">本地上传图片</span>
+</div>
+<div class="icon-type-details pl-8 pb-1" id="modal-file-icon-details" style="display: none;">
+<input accept="image/*" class="text-xs" id="modal-file-icon-input" type="file"/>
+</div>
+<div class="icon-option-item" data-value="color">
+<span class="material-icons">radio_button_unchecked</span>
+<span class="ml-2">自定义颜色和文本</span>
+</div>
+<div class="icon-type-details pl-8 space-y-2" id="modal-color-icon-details" style="display: none;">
+<input class="w-full h-8 p-1 border border-gray-300 rounded" id="modal-color-text-color" type="color" value="#5E72E4"/>
+<input class="w-full text-xs p-2 border border-gray-300 rounded" id="modal-color-text-input" maxlength="4" placeholder="文本 (最多4字)" type="text"/>
+</div>
+</div>
+</div>
+<div class="button-group">
+<button class="btn-secondary" id="cancel-modal-icon" type="button">取消</button>
+<button class="btn-primary" id="save-modal-icon" type="button">保存</button>
+</div>
+</div>
+<script>
+    const addUrlButtonElementId = 'add-url-button';
+    const urlContainer = document.getElementById('url-container');
+    const iconContextMenu = document.getElementById('icon-context-menu');
+    const editAddIconModal = document.getElementById('edit-add-icon-modal-content');
+    const editAddModalTitle = document.getElementById('edit-add-modal-title');
+    const editIconTrigger = document.getElementById('edit-icon-trigger');
+    const deleteIconItem = document.getElementById('delete-icon-item');
+    const cancelModalIconButton = document.getElementById('cancel-modal-icon');
+    const saveModalIconButton = document.getElementById('save-modal-icon');
+    const modalUrlNameInput = document.getElementById('modal-url-name');
+    const modalUrlLinkInput = document.getElementById('modal-url-link');
+    const modalIconOptionItems = document.querySelectorAll('.icon-option-item');
+    let selectedModalIconType = 'original';
+    const modalOriginalIconDetails = document.getElementById('modal-original-icon-details');
+    const modalOriginalIconUrlInput = document.getElementById('modal-original-icon-url');
+    const modalFileIconDetails = document.getElementById('modal-file-icon-details');
+    const modalFileIconInput = document.getElementById('modal-file-icon-input');
+    const modalColorTextIconDetails = document.getElementById('modal-color-icon-details'); 
+    const modalColorTextColorInput = document.getElementById('modal-color-text-color');
+    const modalColorTextInput = document.getElementById('modal-color-text-input');
+    const defaultUrls = [
+        { name: 'Bilibili', link: 'https://www.bilibili.com', iconSrc: 'https://www.bilibili.com/favicon.ico' },
+        { name: 'YouTube', link: 'https://www.youtube.com', iconSrc: 'https://www.youtube.com/s/desktop/01062331/img/favicon_32x32.png' },
+        { name: 'GitHub', link: 'https://www.github.com', iconSrc: 'https://github.githubassets.com/favicons/favicon.svg' },
+    ];
+    const famousQuotes = [
+      "Stay hungry. Stay foolish.",
+      "The only way to do great work is to love what you do.",
+      "Your time is limited, so don't waste it living someone else's life."
+    ];
+    let currentSearchEngineUrl = 'https://www.baidu.com/s?wd=';
+    const searchInput = document.getElementById('search-input');
+    const searchForm = document.getElementById('search-form');
+    const searchSubmitButton = document.getElementById('search-submit-button');
+    const searchEngineName = document.getElementById('search-engine-name');
+    const dropdownMenu = document.getElementById('dropdown-menu');
+    const menuButton = document.getElementById('menu-button');
+    const searchEngineOptions = document.querySelectorAll('.search-engine-option');
+    const dateElement = document.getElementById('date');
+    const timeElement = document.getElementById('time');
+    const changeBackgroundButton = document.getElementById('change-background-button');
+    const changeBackgroundColorButton = document.getElementById('change-background-color-button');
+    const colorPalettePopup = document.getElementById('color-palette-popup');
+    const customColorPicker = document.getElementById('custom-color-picker');
+    const pageBackground = document.getElementById('page-background');
+    const searchHistoryDropdown = document.getElementById('search-history-dropdown');
+    let searchHistory = JSON.parse(localStorage.getItem('searchHistory')) || [];
+    let draggedItem = null;
+    let currentEditingOrAddingIcon = null;
+    let isAddingNewIcon = false;
+    function normalizeUrl(url) {
+        if (!url) return '';
+        if (!url.match(/^([a-zA-Z]+:)?\/\//) && !url.startsWith('data:')) {
+            return 'https://' + url;
+        }
+        return url;
+    }
+    function updateIconOptionDisplay() {
+        modalIconOptionItems.forEach(item => {
+            const iconEl = item.querySelector('.material-icons');
+            const detailsId = `modal-${item.dataset.value}-icon-details`; 
+            const detailsElement = document.getElementById(detailsId);
+            if (item.dataset.value === selectedModalIconType) {
+                iconEl.textContent = 'radio_button_checked';
+                 if (detailsElement) detailsElement.style.display = 'block';
+            } else {
+                iconEl.textContent = 'radio_button_unchecked';
+                if (detailsElement) detailsElement.style.display = 'none';
+            }
+        });
+    }
+    modalIconOptionItems.forEach(item => {
+        item.addEventListener('click', function() {
+            selectedModalIconType = this.dataset.value;
+            updateIconOptionDisplay();
+        });
+    });
+    function openIconModal(isAdding, iconElement = null) {
+        isAddingNewIcon = isAdding;
+        currentEditingOrAddingIcon = iconElement;
+        editAddModalTitle.textContent = isAdding ? '添加网址' : '编辑网址';
+        editAddIconModal.classList.remove('hidden');
+        if (isAdding) {
+            modalUrlNameInput.value = '';
+            modalUrlLinkInput.value = '';
+            modalOriginalIconUrlInput.value = '';
+            selectedModalIconType = 'original';
+        } else if (iconElement) {
+            modalUrlNameInput.value = iconElement.dataset.name;
+            modalUrlLinkInput.value = iconElement.dataset.link.replace(/^https?:\/\//, '');
+            modalOriginalIconUrlInput.value = iconElement.dataset.link.replace(/^https?:\/\//, '');
+            const iconSrc = iconElement.querySelector('.icon-bg img')?.src || '';
+            if (iconSrc.startsWith('data:image/png;base64') && iconElement.dataset.iconType === 'color') {
+                selectedModalIconType = 'color';
+                modalColorTextInput.value = iconElement.dataset.iconText || '';
+                modalColorTextColorInput.value = iconElement.dataset.iconColor || '#5E72E4';
+            } else if (iconSrc.startsWith('data:image/') && iconElement.dataset.iconType === 'file') {
+                 selectedModalIconType = 'file';
+            }
+            else {
+                selectedModalIconType = 'original';
+            }
+        }
+        updateIconOptionDisplay();
+        modalFileIconInput.value = null;
+        if (selectedModalIconType !== 'color') {
+             modalColorTextInput.value = '';
+             modalColorTextColorInput.value = '#5E72E4';
+        }
+    }
+    function displayDailyQuote() {
+        const randomIndex = Math.floor(Math.random() * famousQuotes.length);
+        searchInput.placeholder = famousQuotes[randomIndex];
+    }
+    menuButton.addEventListener('click', () => {
+        dropdownMenu.classList.toggle('hidden');
+    });
+    document.addEventListener('click', (event) => {
+        if (!menuButton.contains(event.target) && !dropdownMenu.contains(event.target)) {
+            dropdownMenu.classList.add('hidden');
+        }
+         if (searchHistoryDropdown && !searchHistoryDropdown.contains(event.target) && event.target !== searchInput) {
+            searchHistoryDropdown.classList.add('hidden');
+        }
+    });
+    const presetColors = [
+        '#EF9A9A', '#F48FB1', '#CE93D8', '#B39DDB', '#9FA8DA',
+        '#90CAF9', '#81D4FA', '#80DEEA', '#A5D6A7', '#C5E1A5',
+        '#E6EE9C', '#FFF59D', '#FFE082', '#FFCC80', '#FFAB91',
+        '#BCAAA4', '#EEEEEE', '#B0BEC5', '#FFFFFF', '#000000'
+    ];
+    function populateColorPalette() {
+        presetColors.forEach(color => {
+            const swatch = document.createElement('div');
+            swatch.className = 'color-swatch';
+            swatch.style.backgroundColor = color;
+            swatch.addEventListener('click', () => {
+                pageBackground.style.backgroundColor = color;
+                localStorage.setItem('backgroundColor', color);
+                colorPalettePopup.classList.add('hidden');
+            });
+            colorPalettePopup.appendChild(swatch);
+        });
+    }
+    const savedBgColor = localStorage.getItem('backgroundColor');
+    if (savedBgColor) {
+        pageBackground.style.backgroundColor = savedBgColor;
+    }
+    customColorPicker.addEventListener('input', (event) => {
+        pageBackground.style.backgroundColor = event.target.value;
+        localStorage.setItem('backgroundColor', event.target.value);
+    });
+    changeBackgroundColorButton.addEventListener('click', () => {
+        colorPalettePopup.classList.toggle('hidden');
+    });
+    document.addEventListener('click', function(event) {
+        if (!colorPalettePopup.contains(event.target) && !changeBackgroundColorButton.contains(event.target)) {
+            colorPalettePopup.classList.add('hidden');
+        }
+    });
+    changeBackgroundButton.addEventListener('click', () => {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.onchange = e => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = readerEvent => {
+                    const imageUrl = readerEvent.target.result;
+                    pageBackground.style.backgroundImage = `url(${imageUrl})`;
+                    pageBackground.style.backgroundSize = 'cover';
+                    pageBackground.style.backgroundPosition = 'center';
+                    localStorage.setItem('backgroundImage', imageUrl);
+                    localStorage.removeItem('backgroundColor'); 
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+        fileInput.click();
+    });
+    const savedBgImage = localStorage.getItem('backgroundImage');
+    if (savedBgImage) {
+        pageBackground.style.backgroundImage = `url(${savedBgImage})`;
+        pageBackground.style.backgroundSize = 'cover';
+        pageBackground.style.backgroundPosition = 'center';
+    }
+    function createUrlItemDOM(name, link, iconSrc, iconType = 'original', iconColor = '', iconText = '') {
+        const itemWrapper = document.createElement('div');
+        itemWrapper.className = 'icon-wrapper';
+        itemWrapper.dataset.name = name;
+        itemWrapper.dataset.link = normalizeUrl(link);
+        itemWrapper.dataset.iconType = iconType;
+        if (iconType === 'color') {
+            itemWrapper.dataset.iconColor = iconColor;
+            itemWrapper.dataset.iconText = iconText;
+        }
+        itemWrapper.draggable = (name !== '添加'); // Make draggable if not the "Add" button
+        if (itemWrapper.draggable) {
+            itemWrapper.addEventListener('dragstart', (e) => {
+                draggedItem = e.currentTarget; // Use currentTarget for the element the listener is attached to
+                if (!draggedItem || draggedItem.id === addUrlButtonElementId) {
+                    e.preventDefault();
+                    return;
+                }
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', draggedItem.dataset.name); // Use a simple data type
+                setTimeout(() => { // Add dragging class after a short delay for visual feedback
+                    if (draggedItem) draggedItem.classList.add('dragging');
+                }, 0);
+            });
+            itemWrapper.addEventListener('dragend', () => {
+                if (draggedItem) {
+                    draggedItem.classList.remove('dragging');
+                }
+                // Remove 'drag-over' class from all items after dragging ends
+                urlContainer.querySelectorAll('.icon-wrapper').forEach(item => item.classList.remove('drag-over'));
+                saveUrlsToLocalStorage(); // Save the new order
+                draggedItem = null;
+            });
+             itemWrapper.addEventListener('dragover', (e) => {
+                e.preventDefault(); // Necessary to allow dropping
+                const targetItem = e.currentTarget;
+                // Prevent dropping on the "Add" button or itself
+                if (!targetItem || targetItem.id === addUrlButtonElementId || !targetItem.draggable || targetItem === draggedItem) {
+                    urlContainer.querySelectorAll('.icon-wrapper').forEach(item => {
+                         if(item !== targetItem) item.classList.remove('drag-over');
+                     });
+                    return;
+                }
+                e.dataTransfer.dropEffect = 'move';
+                // Remove 'drag-over' from other items and add to current target
+                urlContainer.querySelectorAll('.icon-wrapper').forEach(item => {
+                    if (item !== targetItem) item.classList.remove('drag-over');
+                });
+                targetItem.classList.add('drag-over');
+            });
+           itemWrapper.addEventListener('dragleave', (e) => {
+                const targetItem = e.currentTarget;
+                // Remove 'drag-over' class if not dragging over a child or leaving the item itself
+                if (targetItem && !targetItem.contains(e.relatedTarget) && targetItem !== e.target) {
+                    targetItem.classList.remove('drag-over');
+                } else if (!e.relatedTarget || !targetItem.contains(e.relatedTarget)){ // Also remove if leaving to outside the grid
+                    targetItem.classList.remove('drag-over');
+                }
+            });
+            itemWrapper.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const targetItem = e.currentTarget;
+                // Remove 'drag-over' from all items on drop
+                urlContainer.querySelectorAll('.icon-wrapper').forEach(item => item.classList.remove('drag-over'));
+                // Ensure target is a valid, draggable item, not the dragged item itself, and not the "Add" button
+                if (targetItem && draggedItem && targetItem !== draggedItem && targetItem.id !== addUrlButtonElementId && targetItem.draggable) {
+                    const allItems = Array.from(urlContainer.children).filter(child => child.id !== addUrlButtonElementId && child.draggable);
+                    const draggedIndex = allItems.indexOf(draggedItem);
+                    const targetIndex = allItems.indexOf(targetItem);
+                    if (draggedIndex !== -1 && targetIndex !== -1) {
+                        // Reorder the items in the DOM
+                        if (draggedIndex < targetIndex) {
+                            urlContainer.insertBefore(draggedItem, targetItem.nextSibling);
+                        } else {
+                            urlContainer.insertBefore(draggedItem, targetItem);
+                        }
+                        saveUrlsToLocalStorage(); // Save new order
+                    }
+                }
+            });
+        }
+        const iconBg = document.createElement('div');
+        iconBg.className = 'icon-bg';
+        const anchor = document.createElement('a');
+        anchor.href = normalizeUrl(link);
+        anchor.target = '_blank';
+        anchor.draggable = false; // Prevent anchor from being dragged separately
+        const img = document.createElement('img');
+        img.src = iconSrc;
+        img.alt = name + ' icon';
+        img.className = 'w-8 h-8 object-contain pointer-events-none'; // Make image non-interactive for drag
+        img.onerror = function() {
+            this.onerror = null;
+            this.src = 'data:image/svg+xml;charset=UTF-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%234A5568"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>';
+        };
+        anchor.appendChild(img);
+        iconBg.appendChild(anchor);
+        itemWrapper.appendChild(iconBg);
+        const label = document.createElement('span');
+        label.className = 'icon-label pointer-events-none'; // Make label non-interactive for drag
+        label.textContent = name;
+        itemWrapper.appendChild(label);
+        if (itemWrapper.draggable) { 
+            itemWrapper.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                iconContextMenu.style.left = e.pageX + 'px';
+                iconContextMenu.style.top = e.pageY + 'px';
+                iconContextMenu.style.display = 'block';
+                iconContextMenu.currentIcon = itemWrapper;
+            });
+        }
+        return itemWrapper;
+    }
+    editIconTrigger.addEventListener('click', () => {
+        const iconToEdit = iconContextMenu.currentIcon;
+        if (!iconToEdit) return;
+        iconContextMenu.style.display = 'none';
+        openIconModal(false, iconToEdit);
+    });
+    cancelModalIconButton.addEventListener('click', () => {
+        editAddIconModal.classList.add('hidden');
+        currentEditingOrAddingIcon = null;
+    });
+    saveModalIconButton.addEventListener('click', () => {
+        const name = modalUrlNameInput.value.trim();
+        const linkInput = modalUrlLinkInput.value.trim();
+        const link = normalizeUrl(linkInput);
+        if (!name || !linkInput) {
+            alert("名称和网址不能为空。");
+            return;
+        }
+        let iconSrcPromise;
+        let iconTypeToSave = selectedModalIconType;
+        let iconColorToSave = '';
+        let iconTextToSave = '';
+        if (selectedModalIconType === 'original') {
+            const websiteAddressInput = modalOriginalIconUrlInput.value.trim();
+            const websiteAddress = normalizeUrl(websiteAddressInput || link);
+            iconSrcPromise = Promise.resolve(`https://www.google.com/s2/favicons?sz=64&domain_url=${websiteAddress}`);
+        } else if (selectedModalIconType === 'file') {
+            if (modalFileIconInput.files && modalFileIconInput.files[0]) {
+                iconSrcPromise = new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(modalFileIconInput.files[0]);
+                });
+            } else if (!isAddingNewIcon && currentEditingOrAddingIcon && currentEditingOrAddingIcon.dataset.iconType === 'file') {
+                 iconSrcPromise = Promise.resolve(currentEditingOrAddingIcon.querySelector('.icon-bg img').src);
+            } else {
+                 iconSrcPromise = Promise.resolve(`https://www.google.com/s2/favicons?sz=64&domain_url=${link}`); 
+                 if(isAddingNewIcon) iconTypeToSave = 'original'; 
+            }
+        } else if (selectedModalIconType === 'color') {
+            iconColorToSave = modalColorTextColorInput.value;
+            iconTextToSave = modalColorTextInput.value.trim().substring(0, 4) || name.substring(0,2) || '??';
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = iconColorToSave;
+            ctx.fillRect(0, 0, 64, 64);
+            const r = parseInt(iconColorToSave.substr(1, 2), 16);
+            const g = parseInt(iconColorToSave.substr(3, 2), 16);
+            const b = parseInt(iconColorToSave.substr(5, 2), 16);
+            const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+            ctx.fillStyle = brightness > 125 ? '#000000' : '#FFFFFF';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(iconTextToSave, 32, 32);
+            iconSrcPromise = Promise.resolve(canvas.toDataURL());
+        }
+        iconSrcPromise.then(iconSrc => {
+            if (isAddingNewIcon) {
+                addUrlItemToDOM(name, link, iconSrc, iconTypeToSave, iconColorToSave, iconTextToSave);
+            } else if (currentEditingOrAddingIcon) {
+                updateUrlItem(currentEditingOrAddingIcon, name, link, iconSrc, iconTypeToSave, iconColorToSave, iconTextToSave);
+            }
+            saveUrlsToLocalStorage();
+            editAddIconModal.classList.add('hidden');
+            currentEditingOrAddingIcon = null;
+        });
+    });
+    deleteIconItem.addEventListener('click', () => {
+        if (iconContextMenu.currentIcon) {
+            iconContextMenu.currentIcon.remove();
+            saveUrlsToLocalStorage();
+        }
+        iconContextMenu.style.display = 'none';
+    });
+    function addUrlItemToDOM(name, link, iconSrc, iconType = 'original', iconColor = '', iconText = '', isUserAdded = true) {
+      const newItem = createUrlItemDOM(name, link, iconSrc, iconType, iconColor, iconText);
+      const addUrlButton = document.getElementById(addUrlButtonElementId);
+      if (addUrlButton) {
+        urlContainer.insertBefore(newItem, addUrlButton);
+      } else {
+        urlContainer.appendChild(newItem);
+      }
+    }
+    function updateUrlItem(itemWrapperElement, name, link, iconSrc, iconType = 'original', iconColor = '', iconText = '') {
+      itemWrapperElement.dataset.name = name;
+      itemWrapperElement.dataset.link = normalizeUrl(link);
+      itemWrapperElement.dataset.iconType = iconType;
+      if (iconType === 'color') {
+          itemWrapperElement.dataset.iconColor = iconColor;
+          itemWrapperElement.dataset.iconText = iconText;
+      } else {
+          delete itemWrapperElement.dataset.iconColor;
+          delete itemWrapperElement.dataset.iconText;
+      }
+      const anchor = itemWrapperElement.querySelector('.icon-bg a');
+      const img = itemWrapperElement.querySelector('.icon-bg img');
+      const label = itemWrapperElement.querySelector('.icon-label');
+      if (anchor) anchor.href = normalizeUrl(link);
+      if (img) {
+        img.src = iconSrc;
+        img.alt = name + " icon";
+      }
+      if (label) label.textContent = name;
+    }
+    function createAndAppendAddButton() {
+        const addButtonWrapper = createUrlItemDOM('添加', '#', 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'); 
+        addButtonWrapper.id = addUrlButtonElementId;
+        addButtonWrapper.classList.add('add-button');
+        addButtonWrapper.draggable = false; 
+        const iconBgDiv = addButtonWrapper.querySelector('.icon-bg');
+        iconBgDiv.innerHTML = ''; 
+        const addIcon = document.createElement('span');
+        addIcon.className = 'material-icons text-gray-500 text-3xl';
+        addIcon.textContent = 'add_circle_outline';
+        iconBgDiv.appendChild(addIcon);
+        addButtonWrapper.onclick = () => openIconModal(true);
+        urlContainer.appendChild(addButtonWrapper);
+    }
+    function loadUrlsFromLocalStorage() {
+        urlContainer.innerHTML = '';
+        const urls = JSON.parse(localStorage.getItem('userUrls'));
+        if (urls && urls.length > 0) {
+            urls.forEach(url => addUrlItemToDOM(url.name, url.link, url.iconSrc, url.iconType, url.iconColor, url.iconText, false));
+        } else {
+            defaultUrls.forEach(url => addUrlItemToDOM(url.name, url.link, url.iconSrc, 'original', '', '', false));
+            saveUrlsToLocalStorage();
+        }
+        createAndAppendAddButton();
+    }
+    function saveUrlsToLocalStorage() {
+        const urlItems = [];
+        urlContainer.querySelectorAll('.icon-wrapper:not(#' + addUrlButtonElementId + ')').forEach(itemWrapper => {
+            const img = itemWrapper.querySelector('.icon-bg img');
+            if (itemWrapper.dataset.name && itemWrapper.dataset.link && img) {
+                urlItems.push({
+                    name: itemWrapper.dataset.name,
+                    link: itemWrapper.dataset.link,
+                    iconSrc: img.src,
+                    iconType: itemWrapper.dataset.iconType || 'original',
+                    iconColor: itemWrapper.dataset.iconColor || '',
+                    iconText: itemWrapper.dataset.iconText || ''
+                });
+            }
+        });
+        localStorage.setItem('userUrls', JSON.stringify(urlItems));
+    }
+    function addSearchToHistory(query) {
+        if (!query || famousQuotes.includes(query)) return;
+        searchHistory = searchHistory.filter(item => item !== query); 
+        searchHistory.unshift(query); 
+        if (searchHistory.length > 10) { 
+            searchHistory.pop();
+        }
+        localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+        renderSearchHistory();
+    }
+    function renderSearchHistory() {
+        searchHistoryDropdown.innerHTML = '';
+        if (searchHistory.length === 0) {
+            searchHistoryDropdown.classList.add('hidden');
+            return;
+        }
+        searchHistory.forEach((item, index) => {
+            const historyItemDiv = document.createElement('div');
+            historyItemDiv.className = 'search-history-item';
+            const textSpan = document.createElement('span');
+            textSpan.textContent = item;
+            textSpan.className = 'flex-grow truncate pr-2'; // Allow text to take available space and truncate
+            textSpan.addEventListener('click', () => {
+                searchInput.value = item;
+                searchHistoryDropdown.classList.add('hidden');
+                performSearch();
+            });
+            const deleteButton = document.createElement('button'); // Use button for accessibility
+            deleteButton.type = 'button';
+            deleteButton.className = 'material-icons delete-history ml-2 flex-shrink-0'; // Added margin and prevent shrinking
+            deleteButton.textContent = 'close';
+            deleteButton.title = '删除此条历史记录';
+            deleteButton.setAttribute('aria-label', '删除搜索历史: ' + item);
+            deleteButton.addEventListener('click', (e) => {
+                e.stopPropagation(); 
+                searchHistory.splice(index, 1);
+                localStorage.setItem('searchHistory', JSON.stringify(searchHistory));
+                renderSearchHistory(); 
+            });
+            historyItemDiv.appendChild(textSpan);
+            historyItemDiv.appendChild(deleteButton);
+            searchHistoryDropdown.appendChild(historyItemDiv);
+        });
+        // Only show if there's history and the input is focused or dropdown was just interacted with
+         if (document.activeElement === searchInput || searchHistoryDropdown.classList.contains('just-interacted')) {
+            searchHistoryDropdown.classList.remove('hidden');
+        }
+        searchHistoryDropdown.classList.remove('just-interacted'); // Reset flag
+    }
+    searchInput.addEventListener('focus', () => {
+        if (searchHistory.length > 0) {
+            renderSearchHistory();
+            searchHistoryDropdown.classList.remove('hidden');
+        }
+    });
+    searchInput.addEventListener('click', (e) => { // Ensure dropdown shows on click if not already open
+        e.stopPropagation(); // Prevent body click listener from hiding it immediately
+        if (searchHistory.length > 0) {
+            renderSearchHistory();
+            searchHistoryDropdown.classList.remove('hidden');
+        }
+    });
+    searchHistoryDropdown.addEventListener('mousedown', () => {
+        // Use mousedown to prevent blur from hiding before click on item/delete
+        searchHistoryDropdown.classList.add('just-interacted');
+    });
+    function performSearch() {
+        let query = searchInput.value.trim();
+        if (!query) {
+            query = searchInput.placeholder;
+        }
+        if (query) {
+            addSearchToHistory(query);
+            const isUrl = query.match(/^([a-zA-Z]+:)?\/\//) ||
+                          (query.includes('.') && !query.includes(' ') && !query.includes('://')) ||
+                           query.toLowerCase() === 'localhost' ||
+                           query.match(/^localhost:\d+$/);
+            if (isUrl && !famousQuotes.includes(query) ) {
+                let fullUrl = normalizeUrl(query);
+                try {
+                    new URL(fullUrl);
+                    window.open(fullUrl, '_blank');
+                } catch (_) {
+                    window.open(currentSearchEngineUrl + encodeURIComponent(query), '_blank');
+                }
+            } else {
+                window.open(currentSearchEngineUrl + encodeURIComponent(query), '_blank');
+            }
+            searchInput.value = '';
+            displayDailyQuote();
+            searchHistoryDropdown.classList.add('hidden');
+        }
+    }
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        performSearch();
+    });
+    searchSubmitButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        performSearch();
+    });
+    searchEngineOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+            e.preventDefault();
+            currentSearchEngineUrl = option.dataset.url;
+            searchEngineName.textContent = option.textContent;
+            dropdownMenu.classList.add('hidden');
+            localStorage.setItem('searchEngine', JSON.stringify({ name: option.textContent, url: option.dataset.url }));
+            searchInput.focus();
+        });
+    });
+    const savedSearchEngine = JSON.parse(localStorage.getItem('searchEngine'));
+    if (savedSearchEngine) {
+        currentSearchEngineUrl = savedSearchEngine.url;
+        searchEngineName.textContent = savedSearchEngine.name;
+    }
+    function initializeDateTime() {
+        const now = new Date();
+        const dateString = now.toLocaleDateString('zh-CN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        const timeString = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        dateElement.textContent = dateString;
+        timeElement.textContent = timeString;
+    }
+    function updateOnlyTime() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        timeElement.textContent = timeString;
+    }
+    initializeDateTime();
+    setInterval(updateOnlyTime, 1000);
+    displayDailyQuote();
+    loadUrlsFromLocalStorage();
+    populateColorPalette();
+    updateIconOptionDisplay();
+    renderSearchHistory(); 
+    document.addEventListener('click', function(event) {
+        if (iconContextMenu && !iconContextMenu.contains(event.target) && iconContextMenu.style.display === 'block') {
+            let targetElement = event.target;
+            let clickedOnIconWrapper = false;
+            while (targetElement) {
+                if (targetElement.classList && targetElement.classList.contains('icon-wrapper')) {
+                    clickedOnIconWrapper = true;
+                    break;
+                }
+                targetElement = targetElement.parentNode;
+            }
+            if (event.button !== 2 && !clickedOnIconWrapper) {
+                 iconContextMenu.style.display = 'none';
+            }
+        }
+        const isModalOpen = !editAddIconModal.classList.contains('hidden');
+        const clickedInsideModal = editAddIconModal.contains(event.target);
+        const clickedOnModalTrigger = event.target === editIconTrigger || editIconTrigger.contains(event.target);
+        const clickedOnAddButton = event.target.closest('.icon-wrapper')?.id === addUrlButtonElementId;
+        const clickedInsideContextMenu = iconContextMenu.contains(event.target);
+        if (isModalOpen && !clickedInsideModal && !clickedOnModalTrigger && !clickedOnAddButton && !clickedInsideContextMenu) {
+            let clickedInsideModalOption = false;
+            modalIconOptionItems.forEach(item => {
+                if (item.contains(event.target)) {
+                    clickedInsideModalOption = true;
+                }
+            });
+            if (!clickedInsideModalOption) {
+                editAddIconModal.classList.add('hidden');
+                currentEditingOrAddingIcon = null;
+            }
+        }
+    }, true);
+  </script>
+</body></html>
